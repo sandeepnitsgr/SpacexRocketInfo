@@ -21,7 +21,7 @@ class RetrofitModule constructor(
 ) {
     @Provides
     @ApplicationScope
-    fun getRetrofit(okHttpClient: OkHttpClient?): Retrofit {
+    fun getRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -32,7 +32,7 @@ class RetrofitModule constructor(
 
     @Provides
     @ApplicationScope
-    fun getOkHttpCleint(
+    fun getOkHttpClient(
         httpLoggingInterceptor: HttpLoggingInterceptor,
         cache: Cache,
         onlineInterceptor: OnlineInterceptor,

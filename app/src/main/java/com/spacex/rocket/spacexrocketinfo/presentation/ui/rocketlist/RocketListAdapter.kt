@@ -32,11 +32,12 @@ class RocketListAdapter(private var data: RocketListData) :
                 .into(holder.icon)
         }
 
-        var name = "Name : ${data[position].name}"
+        val name = "Name : ${data[position].name}"
+        val country = "Country: ${data[position].country}"
+        val engine =  "Engine : ${data[position].engines?.let { it.number.toString() } ?: "Unnamed"}"
         holder.name.text = name
-        holder.country.text = "Country: ${data[position].country}"
-        holder.engine.text =
-            "Engine : ${data[position].engines?.let { it.number.toString() } ?: "Unnamed"}"
+        holder.country.text = country
+        holder.engine.text = engine
         holder.bind(data[position])
 
     }
