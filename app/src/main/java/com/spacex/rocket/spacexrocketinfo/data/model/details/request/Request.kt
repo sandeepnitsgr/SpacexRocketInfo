@@ -5,6 +5,11 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
+data class Request(
+    @SerializedName("query")
+    val query: RequestQuery
+) : Parcelable
+@Parcelize
 data class RequestQuery(
     @SerializedName("rocket")
     val rocket: String

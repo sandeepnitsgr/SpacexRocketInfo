@@ -55,7 +55,7 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
     private fun setDataInHeaderViewHolder(holder: HeaderViewHolder) {
         holder.tvRocketDescription.text = descriptionLaunch
         if (::pairMap.isInitialized)
-            initLineChartData(holder.lineChart)
+            updateLineChartData(holder.lineChart)
     }
 
     private fun setDataInLaunchDetailViewHolder(
@@ -74,18 +74,13 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
         }
     }
 
-    private fun initLineChartData(lineChart: LineChart) {
+    private fun updateLineChartData(lineChart: LineChart) {
         val countList = mutableListOf<Entry>()
-
-        val maxRange = pairMap.values.maxOrNull()
-        val minRange = pairMap.values.minOrNull()
-
         pairMap.forEach { entry ->
             run {
                 countList.add(Entry(Integer.parseInt(entry.key).toFloat(), entry.value.toFloat()))
             }
         }
-
         val xAxisData = LineDataSet(countList, NUM_OF_LAUNCHES)
         xAxisData.color = Color.RED
         xAxisData.setDrawValues(false)
@@ -93,14 +88,19 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
 
         val lineDataSets = LineData(xAxisData)
 
+        setLineChartProperties(lineChart)
         lineChart.data = lineDataSets
 
-        lineChart.xAxis.mAxisMaximum = maxRange?.toFloat() ?: 1f
-        lineChart.xAxis.mAxisMinimum = minRange?.toFloat() ?: -1f
-        lineChart.xAxis.mAxisRange = 1f
-        lineChart.description.isEnabled = false
         lineChart.notifyDataSetChanged()
         lineChart.invalidate()
+    }
+
+    private fun setLineChartProperties(lineChart: LineChart) {
+        val maxRange = pairMap.values.maxOrNull()
+        lineChart.xAxis.mAxisMaximum = maxRange?.toFloat() ?: 1f
+        lineChart.xAxis.mAxisMinimum = 0f
+        lineChart.xAxis.mAxisRange = 1f
+        lineChart.description.isEnabled = false
     }
 
     private fun convertToFormattedDate(dateUtc: String): String {

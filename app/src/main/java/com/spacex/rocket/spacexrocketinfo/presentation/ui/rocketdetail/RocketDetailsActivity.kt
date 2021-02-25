@@ -3,6 +3,7 @@ package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketdetail
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,6 +30,7 @@ class RocketDetailsActivity : BaseActivity() {
 
     private lateinit var rvRocketLaunch: RecyclerView
     private lateinit var progressBar: ProgressBar
+    private lateinit var errorTextView: TextView
 
     @Inject
     lateinit var apiInterface: ApiService
@@ -50,12 +52,17 @@ class RocketDetailsActivity : BaseActivity() {
     private fun initUIComponents() {
         rvRocketLaunch = findViewById(R.id.rv_launch_info)
         progressBar = findViewById(R.id.detail_progress)
+        errorTextView = findViewById(R.id.tv_error_message)
         setUpUIComponents()
 
     }
 
     private fun setUpUIComponents() {
-        changeViewVisibilityOnDataLoad(isProgressBarVisible = true)
+        changeViewVisibilityOnDataLoad(
+            progressBarVisibility = View.VISIBLE,
+            rvVisibility = View.GONE
+        )
+        errorTextView.visibility = View.GONE
         val llm = LinearLayoutManager(this)
         llm.orientation = LinearLayoutManager.VERTICAL
         val adapter = RocketLaunchDetailsAdapter(ArrayList())
@@ -95,6 +102,17 @@ class RocketDetailsActivity : BaseActivity() {
         viewModel.rocketDetailsData.observe(this, { response: RocketDetailsResponse? ->
             when (response?.status) {
                 Status.LOADING -> {
+                    changeViewVisibilityOnDataLoad(
+                        progressBarVisibility = View.VISIBLE,
+                        rvVisibility = View.GONE
+                    )
+                }
+                Status.ERROR -> {
+                    errorTextView.visibility = View.VISIBLE
+                    changeViewVisibilityOnDataLoad(
+                        progressBarVisibility = View.GONE,
+                        rvVisibility = View.GONE
+                    )
                 }
                 else -> {
                     response?.let {
@@ -121,7 +139,10 @@ class RocketDetailsActivity : BaseActivity() {
             val map = sortedMapOf<String, Int>()
 
             prepareChartDataFromMap(it, map)
-            changeViewVisibilityOnDataLoad(isProgressBarVisible = false)
+            changeViewVisibilityOnDataLoad(
+                progressBarVisibility = View.GONE,
+                rvVisibility = View.VISIBLE
+            )
             adapter.setAdapterData(
                 it,
                 option?.description ?: NO_DESCRIPTION_TEXT,
@@ -132,9 +153,13 @@ class RocketDetailsActivity : BaseActivity() {
         }
     }
 
-    private fun changeViewVisibilityOnDataLoad(isProgressBarVisible: Boolean) {
-        progressBar.visibility = if (isProgressBarVisible) View.VISIBLE else View.GONE
-        rvRocketLaunch.visibility = if (isProgressBarVisible) View.GONE else View.VISIBLE
+    private fun changeViewVisibilityOnDataLoad(
+        progressBarVisibility: Int,
+        rvVisibility: Int
+    ) {
+        progressBar.visibility = progressBarVisibility
+        rvRocketLaunch.visibility = rvVisibility
+
     }
 
     private fun prepareChartDataFromMap(

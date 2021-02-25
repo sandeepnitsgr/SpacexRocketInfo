@@ -1,5 +1,8 @@
 package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketlist
 
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -21,8 +24,10 @@ import com.spacex.rocket.spacexrocketinfo.presentation.ui.BaseActivity
 import com.spacex.rocket.spacexrocketinfo.presentation.ui.SpaceItemDecoration
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketListViewModelFactory
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketsListViewModel
-import com.spacex.rocket.spacexrocketinfo.utils.Constants.ERROR_WHILE_LOADING_TEXT
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.PREF_KEY
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.PREF_NAME
 import javax.inject.Inject
+
 
 class RocketsListActivity : BaseActivity() {
     @Inject
@@ -37,13 +42,14 @@ class RocketsListActivity : BaseActivity() {
     private lateinit var errorMessageTextView: TextView
     private lateinit var recyclerView: RecyclerView
     private val filterItems = arrayOf("All", "Active", "Inactive")
+    private lateinit var prefs : SharedPreferences
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+        override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initInjector()
-        initViewModel()
         initUI()
+        initViewModel()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -94,7 +100,6 @@ class RocketsListActivity : BaseActivity() {
                 Status.LOADING -> swipeRefreshLayout.isRefreshing = true
                 Status.ERROR -> run {
                     swipeRefreshLayout.visibility = View.GONE
-                    errorMessageTextView.text = ERROR_WHILE_LOADING_TEXT
                     errorMessageTextView.visibility = View.VISIBLE
                 }
                 else -> updateRecyclerViewData(response)
@@ -117,6 +122,45 @@ class RocketsListActivity : BaseActivity() {
             viewModel.getAllRocketsListFromRepo()
         }
 
+        checkAndShowWelcomeDialogForFirstTimeUser()
+
+    }
+
+    private fun checkAndShowWelcomeDialogForFirstTimeUser() {
+
+        if (isFirstTimeUser()) {
+            val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            } else {
+                AlertDialog.Builder(this)
+            }
+            builder.setMessage(R.string.first_launch_message)
+                .setCancelable(false)
+                .setPositiveButton("OK") { dialog, _ ->
+                    dialog.dismiss()
+
+                }
+            val alert = builder.create()
+            alert.show()
+
+        }
+    }
+
+    private fun isFirstTimeUser(): Boolean {
+        prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val firstTimeOpened = prefs.getBoolean(PREF_KEY, false)
+
+        if (!firstTimeOpened){
+            saveFirstTimeLaunch()
+            return true
+        }
+        return false
+    }
+
+    private fun saveFirstTimeLaunch() {
+        val editor: SharedPreferences.Editor = prefs.edit()
+        editor.putBoolean(PREF_KEY, true)
+        editor.apply()
     }
 
     private fun updateRecyclerViewData(response: Response) {

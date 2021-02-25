@@ -5,4 +5,6 @@
     <string name="description">Description</string>
     <string name="detail_screen_label">Launch Details</string>
     <string name="list_activity_label">SpaceX Rockets List</string>
+    <string name="error_occured_message">Some error occured while loading data!</string>
+    <string name="first_launch_message">Welcome to SpaceXRocketInfo. Hope you enjoy your visit here.\n\nQuote: I was not born for the one corner, the whole universe is my native land.</string>
 </resources>
