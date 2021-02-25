@@ -14,7 +14,7 @@ import com.spacex.rocket.spacexrocketinfo.R
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.presentation.glide.GlideApp.with
-import com.spacex.rocket.spacexrocketinfo.presentation.ui.RocketDetailsActivity
+import com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketdetail.RocketDetailsActivity
 
 class RocketListAdapter(private var data: RocketListData) :
     RecyclerView.Adapter<RocketListAdapter.RocketListViewHolder>() {
@@ -28,7 +28,7 @@ class RocketListAdapter(private var data: RocketListData) :
         data[position].flickrImages?.get(0)?.let {
             with(holder.itemView.context).load(it)
                 .placeholder(R.drawable.no_image)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .into(holder.icon)
         }
 

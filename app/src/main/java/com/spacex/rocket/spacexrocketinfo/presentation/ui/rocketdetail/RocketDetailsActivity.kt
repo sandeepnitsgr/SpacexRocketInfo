@@ -1,38 +1,34 @@
-package com.spacex.rocket.spacexrocketinfo.presentation.ui
+package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketdetail
 
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
-import android.widget.TextView
+import android.view.View
+import android.widget.ProgressBar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
 import com.spacex.rocket.spacexrocketinfo.R
 import com.spacex.rocket.spacexrocketinfo.SpaceXApp
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
-import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
 import com.spacex.rocket.spacexrocketinfo.data.remote.retrofit.ApiService
 import com.spacex.rocket.spacexrocketinfo.di.DaggerDetailActivityComponent
-import com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketlist.RocketListAdapter
+import com.spacex.rocket.spacexrocketinfo.presentation.ui.BaseActivity
+import com.spacex.rocket.spacexrocketinfo.presentation.ui.SpaceItemDecoration
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketDetailsViewModel
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketDetailsViewModelFactory
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.INTENT_KEY
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.NO_DESCRIPTION_TEXT
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 class RocketDetailsActivity : BaseActivity() {
 
-    lateinit var entries: ArrayList<Entry>
-    lateinit var lineChart: LineChart
-    lateinit var tvRocketDescription: TextView
-    lateinit var rvRocketLaunch: RecyclerView
+    private lateinit var rvRocketLaunch: RecyclerView
+    private lateinit var progressBar: ProgressBar
 
     @Inject
     lateinit var apiInterface: ApiService
@@ -46,31 +42,31 @@ class RocketDetailsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.details_activity)
-        fetchPassedData()
         initUIComponents()
+        fetchPassedData()
         setUpViewModelIfRequired()
     }
 
     private fun initUIComponents() {
-        lineChart = findViewById(R.id.lineChart)
-        tvRocketDescription = findViewById(R.id.rocket_description)
         rvRocketLaunch = findViewById(R.id.rv_launch_info)
-        setDataInUIComponents()
+        progressBar = findViewById(R.id.detail_progress)
+        setUpUIComponents()
 
     }
 
-    private fun setDataInUIComponents() {
-        tvRocketDescription.text = option?.description ?: "No Description Found"
+    private fun setUpUIComponents() {
+        changeViewVisibilityOnDataLoad(isProgressBarVisible = true)
         val llm = LinearLayoutManager(this)
         llm.orientation = LinearLayoutManager.VERTICAL
+        val adapter = RocketLaunchDetailsAdapter(ArrayList())
+
         rvRocketLaunch.layoutManager = llm
-        rvRocketLaunch.adapter = RocketLaunchDetailsAdapter(ArrayList())
+        rvRocketLaunch.adapter = adapter
         rvRocketLaunch.addItemDecoration(SpaceItemDecoration(LinearLayoutManager.VERTICAL))
-        rvRocketLaunch.isNestedScrollingEnabled = false
     }
 
     private fun fetchPassedData() {
-        option = intent.extras?.get("response") as RocketInfo?
+        option = intent.extras?.get(INTENT_KEY) as RocketInfo?
     }
 
     private fun setUpViewModelIfRequired() {
@@ -109,11 +105,6 @@ class RocketDetailsActivity : BaseActivity() {
         })
     }
 
-    private fun updateDataInView(response: RocketDetailsResponse) {
-        Log.e("sandeep", response.data?.docs.toString())
-        initLineChart(response)
-    }
-
     override fun initInjector() {
         val applicationComponent = SpaceXApp.get(this).getApplicationComponent()
         val detailComponent = DaggerDetailActivityComponent.builder()
@@ -122,42 +113,40 @@ class RocketDetailsActivity : BaseActivity() {
         detailComponent.inject(this)
     }
 
-    private fun initLineChart(response: RocketDetailsResponse) {
+    private fun updateDataInView(response: RocketDetailsResponse) {
         val sortedResponse = response.data?.docs
-        Log.e("sandeep", sortedResponse.toString())
         sortedResponse?.sortedWith(compareBy { it.dateUtc })
         sortedResponse?.let {
-            (rvRocketLaunch.adapter as RocketLaunchDetailsAdapter).setAdapterData(it)
+            val adapter = rvRocketLaunch.adapter as RocketLaunchDetailsAdapter
+            val map = sortedMapOf<String, Int>()
+
+            prepareChartDataFromMap(it, map)
+            changeViewVisibilityOnDataLoad(isProgressBarVisible = false)
+            adapter.setAdapterData(
+                it,
+                option?.description ?: NO_DESCRIPTION_TEXT,
+                map
+            )
+            rvRocketLaunch.scheduleLayoutAnimation()
+
         }
-        entries = ArrayList()
-        val revenueComp1 = arrayListOf(10000f, 20000f, 30000f, 40000f)
-        val revenueComp2 = arrayListOf(22000f, 23000f, 5000f, 48000f)
-
-        val entries1 = revenueComp1.mapIndexed { index, arr ->
-            Entry(index.toFloat(), arr)
-        }
-
-        val entries2 = revenueComp2.mapIndexed { index, arrayList ->
-            Entry(index.toFloat(), arrayList)
-        }
-
-        val lineDataSet1 = LineDataSet(entries1, "Company 1")
-        lineDataSet1.color = Color.RED
-        lineDataSet1.setDrawValues(false)
-        lineDataSet1.axisDependency = YAxis.AxisDependency.LEFT
-
-        val lineDataSet2 = LineDataSet(entries2, "Company 2")
-        lineDataSet2.color = Color.BLUE
-        lineDataSet1.setDrawValues(false)
-        lineDataSet2.axisDependency = YAxis.AxisDependency.LEFT
-
-        val lineDataSets = LineData(lineDataSet1, lineDataSet2)
-
-        lineChart.data = lineDataSets
-
-        lineChart.axisLeft.mAxisMaximum = 1f
-        lineChart.axisLeft.mAxisMinimum = -1f
-        lineChart.axisLeft.mAxisRange = 2f
     }
 
+    private fun changeViewVisibilityOnDataLoad(isProgressBarVisible: Boolean) {
+        progressBar.visibility = if (isProgressBarVisible) View.VISIBLE else View.GONE
+        rvRocketLaunch.visibility = if (isProgressBarVisible) View.GONE else View.VISIBLE
+    }
+
+    private fun prepareChartDataFromMap(
+        it: List<Doc>,
+        map: SortedMap<String, Int>
+    ) {
+        it.forEach { item ->
+            run {
+                val date = item.dateUtc
+                val key = date.substring(0, date.indexOf("-"))
+                map[key] = map.getOrDefault(key, 0) + 1
+            }
+        }
+    }
 }

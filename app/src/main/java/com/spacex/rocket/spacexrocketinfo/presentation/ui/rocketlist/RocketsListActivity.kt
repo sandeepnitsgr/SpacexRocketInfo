@@ -3,6 +3,8 @@ package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketlist
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,11 +17,11 @@ import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 import com.spacex.rocket.spacexrocketinfo.data.remote.retrofit.ApiService
 import com.spacex.rocket.spacexrocketinfo.di.DaggerRocketListActivityComponent
-import com.spacex.rocket.spacexrocketinfo.di.RocketListActivityContextModule
 import com.spacex.rocket.spacexrocketinfo.presentation.ui.BaseActivity
 import com.spacex.rocket.spacexrocketinfo.presentation.ui.SpaceItemDecoration
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketListViewModelFactory
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketsListViewModel
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.ERROR_WHILE_LOADING_TEXT
 import javax.inject.Inject
 
 class RocketsListActivity : BaseActivity() {
@@ -32,6 +34,7 @@ class RocketsListActivity : BaseActivity() {
     private lateinit var viewModel: RocketsListViewModel
 
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var errorMessageTextView: TextView
     private lateinit var recyclerView: RecyclerView
     private val filterItems = arrayOf("All", "Active", "Inactive")
 
@@ -89,6 +92,11 @@ class RocketsListActivity : BaseActivity() {
         viewModel.rocketListData.observe(this, { response: Response ->
             when (response.status) {
                 Status.LOADING -> swipeRefreshLayout.isRefreshing = true
+                Status.ERROR -> run {
+                    swipeRefreshLayout.visibility = View.GONE
+                    errorMessageTextView.text = ERROR_WHILE_LOADING_TEXT
+                    errorMessageTextView.visibility = View.VISIBLE
+                }
                 else -> updateRecyclerViewData(response)
             }
         })
@@ -97,6 +105,7 @@ class RocketsListActivity : BaseActivity() {
 
     private fun initUI() {
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        errorMessageTextView = findViewById(R.id.error_message_view)
         swipeRefreshLayout.isRefreshing = true
         recyclerView = findViewById(R.id.recyclerView)
         val llm = LinearLayoutManager(this)
@@ -114,7 +123,10 @@ class RocketsListActivity : BaseActivity() {
         response.data?.let {
             (recyclerView.adapter as RocketListAdapter).updateList(it)
         }
+        recyclerView.scheduleLayoutAnimation()
         swipeRefreshLayout.isRefreshing = false
+        swipeRefreshLayout.visibility = View.VISIBLE
+        errorMessageTextView.visibility = View.GONE
 
     }
 }

@@ -2,7 +2,23 @@ package com.spacex.rocket.spacexrocketinfo.utils
 
 object Constants {
     const val BASE_URL = "https://api.spacexdata.com/"
+    const val ROCKET_LIST_ENDPOINT = "v4/rockets"
+    const val LAUNCH_DETAIL_ENDPOINT = "v4/launches/query"
 
-    const val HEADER_CACHE_CONTROL = "Cache-Control"
-    const val HEADER_PRAGMA = "Pragma"
+
+
+    const val TYPE_HEADER = 0
+    const val TYPE_ITEM = 1
+    const val NUM_OF_LAUNCHES = "Number of launches per year"
+    const val INPUT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    const val OUTPUT_DATE_FORMAT = "dd-MM-yyyy"
+    const val SUCCESSFUL_MESSAGE = "Successful"
+    const val FAILED_MESSAGE = "Failed"
+
+
+
+    const val NO_DESCRIPTION_TEXT = "No Description Found"
+    const val INTENT_KEY = "response"
+
+    const val ERROR_WHILE_LOADING_TEXT = "Some error occured while loading data! "
 }

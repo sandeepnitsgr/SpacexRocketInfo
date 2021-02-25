@@ -13,15 +13,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SpacexRocketInfo">
-        <activity android:name=".presentation.ui.BaseActivity"></activity>
-        <activity android:name=".presentation.ui.rocketlist.RocketsListActivity">
+        <activity android:name=".presentation.ui.rocketlist.RocketsListActivity"
+            android:label="@string/list_activity_label">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".presentation.ui.RocketDetailsActivity" />
+        <activity android:name=".presentation.ui.rocketdetail.RocketDetailsActivity"
+            android:label="@string/detail_screen_label"/>
     </application>
 
 </manifest>
