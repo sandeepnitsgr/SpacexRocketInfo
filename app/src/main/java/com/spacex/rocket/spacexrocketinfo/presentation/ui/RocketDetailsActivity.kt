@@ -2,6 +2,7 @@ package com.spacex.rocket.spacexrocketinfo.presentation.ui
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.charts.LineChart
@@ -14,7 +15,6 @@ import com.spacex.rocket.spacexrocketinfo.SpaceXApp
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
-import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
 import com.spacex.rocket.spacexrocketinfo.data.remote.retrofit.ApiService
 import com.spacex.rocket.spacexrocketinfo.di.DaggerDetailActivityComponent
@@ -29,6 +29,7 @@ class RocketDetailsActivity : BaseActivity() {
 
     @Inject
     lateinit var apiInterface: ApiService
+
     @Inject
     lateinit var rocketDetailsViewModelFactory: RocketDetailsViewModelFactory
 
@@ -58,7 +59,7 @@ class RocketDetailsActivity : BaseActivity() {
     }
 
     private fun fetchData(id: String) {
-        val request = Request(RequestQuery(id))
+        val request = RequestQuery(id)
         viewModel.getRocketDetailsData(request)
     }
 
@@ -83,7 +84,7 @@ class RocketDetailsActivity : BaseActivity() {
     }
 
     private fun updateDataInView(response: RocketDetailsResponse?) {
-
+        Log.e("sandeep", response.toString())
     }
 
     override fun initInjector() {

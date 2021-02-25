@@ -78,8 +78,7 @@ class RocketsListViewModel @Inject constructor(
         )
     }
 
-
-    override fun onCleared() {
+    public override fun onCleared() {
         disposables.clear()
     }
 }

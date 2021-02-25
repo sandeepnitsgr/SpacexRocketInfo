@@ -71,10 +71,12 @@ class RocketsListViewModelTest {
         assertNotEquals("customRocketName", list[0].name)
         verify(exactly = 1) { schedulerProvider.io() }
         verify(exactly = 1) { schedulerProvider.ui() }
+        assert(viewModel.disposables.size() == 1)
     }
 
     @Test
     fun `test whether disposable is cleared`() {
-
+        viewModel.onCleared()
+        assert(viewModel.disposables.size() == 0)
     }
 }
