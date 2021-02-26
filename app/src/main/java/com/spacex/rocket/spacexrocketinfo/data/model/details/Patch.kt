@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Patch(
     @SerializedName("large")
-    val large: String,
+    val large: String?,
     @SerializedName("small")
-    val small: String
+    val small: String?
 )

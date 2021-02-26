@@ -13,6 +13,7 @@ import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
+import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
 import com.spacex.rocket.spacexrocketinfo.data.remote.retrofit.ApiService
 import com.spacex.rocket.spacexrocketinfo.di.DaggerDetailActivityComponent
@@ -87,7 +88,7 @@ class RocketDetailsActivity : BaseActivity() {
     }
 
     private fun fetchData(id: String) {
-        val request = RequestQuery(id)
+        val request = Request(RequestQuery(id))
         viewModel.getRocketDetailsData(request)
     }
 

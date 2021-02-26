@@ -9,6 +9,7 @@ data class Request(
     @SerializedName("query")
     val query: RequestQuery
 ) : Parcelable
+
 @Parcelize
 data class RequestQuery(
     @SerializedName("rocket")

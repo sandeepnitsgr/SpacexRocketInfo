@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsData
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
-import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
+import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.domain.RocketDetailsUseCase
 import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
@@ -18,7 +18,7 @@ class RocketDetailsViewModel @Inject constructor(
     var disposable = CompositeDisposable()
         private set
 
-    fun getRocketDetailsData(request: RequestQuery) {
+    fun getRocketDetailsData(request: Request) {
         disposable.add(usecase.getRocketDetailsData(request)
             .subscribeOn(schedulerProvider.io())
             .observeOn(schedulerProvider.ui())

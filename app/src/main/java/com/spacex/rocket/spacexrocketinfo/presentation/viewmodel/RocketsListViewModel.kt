@@ -24,28 +24,25 @@ class RocketsListViewModel @Inject constructor(
         get() = _rocketListData
 
     private val _rocketListData = MutableLiveData<Response>()
-    private val _filteredData = MutableLiveData<Response>()
 
-    private fun getActiveRocketsList(): RocketListData? {
+    private fun getActiveRocketsList(): RocketListData {
         val filteredData =
             _rocketListData.value?.data?.filter { rocketInfo -> rocketInfo.active == true }
         val rocketListData = RocketListData()
         if (filteredData != null) {
             rocketListData.addAll(filteredData)
         }
-        _filteredData.value = success(rocketListData)
-        return _filteredData.value?.data
+        return rocketListData
     }
 
-    private fun getInactiveRocketsList(): RocketListData? {
+    private fun getInactiveRocketsList(): RocketListData {
         val filteredData =
             _rocketListData.value?.data?.filter { rocketInfo -> rocketInfo.active == false }
         val rocketListData = RocketListData()
         if (filteredData != null) {
             rocketListData.addAll(filteredData)
         }
-        _filteredData.value = success(rocketListData)
-        return _filteredData.value?.data
+        return rocketListData
     }
 
     fun getRocketsList(status: String): RocketListData? {

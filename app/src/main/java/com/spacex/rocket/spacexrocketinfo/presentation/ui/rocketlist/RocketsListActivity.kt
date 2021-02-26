@@ -42,9 +42,9 @@ class RocketsListActivity : BaseActivity() {
     private lateinit var errorMessageTextView: TextView
     private lateinit var recyclerView: RecyclerView
     private val filterItems = arrayOf("All", "Active", "Inactive")
-    private lateinit var prefs : SharedPreferences
+    private lateinit var prefs: SharedPreferences
 
-        override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initInjector()
@@ -99,8 +99,9 @@ class RocketsListActivity : BaseActivity() {
             when (response.status) {
                 Status.LOADING -> swipeRefreshLayout.isRefreshing = true
                 Status.ERROR -> run {
-                    swipeRefreshLayout.visibility = View.GONE
+                    recyclerView.visibility = View.GONE
                     errorMessageTextView.visibility = View.VISIBLE
+                    swipeRefreshLayout.isRefreshing = false
                 }
                 else -> updateRecyclerViewData(response)
             }
@@ -150,7 +151,7 @@ class RocketsListActivity : BaseActivity() {
         prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         val firstTimeOpened = prefs.getBoolean(PREF_KEY, false)
 
-        if (!firstTimeOpened){
+        if (!firstTimeOpened) {
             saveFirstTimeLaunch()
             return true
         }
@@ -168,9 +169,9 @@ class RocketsListActivity : BaseActivity() {
             (recyclerView.adapter as RocketListAdapter).updateList(it)
         }
         recyclerView.scheduleLayoutAnimation()
-        swipeRefreshLayout.isRefreshing = false
-        swipeRefreshLayout.visibility = View.VISIBLE
+        recyclerView.visibility = View.VISIBLE
         errorMessageTextView.visibility = View.GONE
+        swipeRefreshLayout.isRefreshing = false
 
     }
 }

@@ -16,8 +16,11 @@
 
     <TextView
         android:id="@+id/description_header"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_8"
+        android:layout_marginLeft="@dimen/dp_8"
+        android:gravity="left"
         android:text="@string/description"
         android:textSize="@dimen/font_16"
         android:textStyle="bold"

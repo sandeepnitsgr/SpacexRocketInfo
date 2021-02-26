@@ -2,7 +2,7 @@ package com.spacex.rocket.spacexrocketinfo.data.remote.retrofit
 
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsData
-import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
+import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.LAUNCH_DETAIL_ENDPOINT
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.ROCKET_LIST_ENDPOINT
 import io.reactivex.Observable
@@ -15,5 +15,5 @@ interface ApiService {
     fun getRocketList(): Observable<RocketListData>
 
     @POST(LAUNCH_DETAIL_ENDPOINT)
-    fun getLaunchesDetail(@Body query: RequestQuery): Observable<RocketDetailsData>
+    fun getLaunchesDetail(@Body query: Request): Observable<RocketDetailsData>
 }

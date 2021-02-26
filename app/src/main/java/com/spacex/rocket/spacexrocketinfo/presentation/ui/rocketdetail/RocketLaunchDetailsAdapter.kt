@@ -1,6 +1,7 @@
 package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketdetail
 
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,16 +57,27 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
         holder.tvRocketDescription.text = descriptionLaunch
         if (::pairMap.isInitialized)
             updateLineChartData(holder.lineChart)
+        else {
+            holder.lineChart.visibility = View.GONE
+        }
     }
 
     private fun setDataInLaunchDetailViewHolder(
         holder: LaunchDetailsViewHolder,
         position: Int
     ) {
-        GlideApp.with(holder.itemView.context).load(response[position - 1].links.patch.small)
-            .placeholder(R.drawable.no_image)
-            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-            .into(holder.icon)
+        val url = response[position - 1].links.patch.small
+        val glide = GlideApp.with(holder.itemView.context)
+        url?.let {
+            glide.load(url)
+                .placeholder(R.drawable.no_image)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                .into(holder.icon)
+        } ?: run {
+            glide.load(R.drawable.no_image).into(holder.icon)
+        }
+
+
         holder.missionName.text = response[position - 1].name
         holder.launchDate.text = convertToFormattedDate(response[position - 1].dateUtc)
         holder.launchSuccessFul.text = when (response[position - 1].success) {
@@ -76,6 +88,11 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
 
     private fun updateLineChartData(lineChart: LineChart) {
         val countList = mutableListOf<Entry>()
+        if (pairMap.isNullOrEmpty()) {
+            lineChart.visibility = View.GONE
+            return
+        }
+        lineChart.visibility = View.VISIBLE
         pairMap.forEach { entry ->
             run {
                 countList.add(Entry(Integer.parseInt(entry.key).toFloat(), entry.value.toFloat()))
