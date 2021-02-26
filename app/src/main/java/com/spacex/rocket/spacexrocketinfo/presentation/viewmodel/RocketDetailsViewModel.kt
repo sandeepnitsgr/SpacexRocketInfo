@@ -3,8 +3,8 @@ package com.spacex.rocket.spacexrocketinfo.presentation.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.DocWithYear
+import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsData
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
@@ -93,6 +93,9 @@ class RocketDetailsViewModel @Inject constructor(
         return customResponse
     }
 
+    public override fun onCleared() {
+        disposable.clear()
+    }
     val customDetailData: LiveData<RocketDetailsResponse>
         get() = _customDetailData
 

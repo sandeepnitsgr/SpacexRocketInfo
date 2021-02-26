@@ -37,7 +37,7 @@ class RocketsListViewModelTest {
 
     @Test
     fun `test getRocketsList method for null list`() {
-        val mockResponse = mockk<Observable<RocketListData>>()
+        val mockResponse = mockk<Observable<RocketListData>>(relaxed = true)
         every { rocketListUseCase.getRocketsList() } returns mockResponse
         every { schedulerProvider.io() } returns Schedulers.trampoline()
         every { schedulerProvider.ui() } returns Schedulers.trampoline()
