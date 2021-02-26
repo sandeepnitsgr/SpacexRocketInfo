@@ -9,9 +9,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spacex.rocket.spacexrocketinfo.R
 import com.spacex.rocket.spacexrocketinfo.SpaceXApp
+import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
-import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
@@ -23,9 +23,7 @@ import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketDetailsVi
 import com.spacex.rocket.spacexrocketinfo.presentation.viewmodel.RocketDetailsViewModelFactory
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.INTENT_KEY
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.NO_DESCRIPTION_TEXT
-import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 class RocketDetailsActivity : BaseActivity() {
 
@@ -100,7 +98,7 @@ class RocketDetailsActivity : BaseActivity() {
     }
 
     private fun addObserver() {
-        viewModel.rocketDetailsData.observe(this, { response: RocketDetailsResponse? ->
+        viewModel.customDetailData.observe(this, { response: RocketDetailsResponse? ->
             when (response?.status) {
                 Status.LOADING -> {
                     changeViewVisibilityOnDataLoad(
@@ -116,9 +114,12 @@ class RocketDetailsActivity : BaseActivity() {
                     )
                 }
                 else -> {
-                    response?.let {
-                        updateDataInView(response)
+                    response?.let { res ->
+                        res.data?.let {
+                            updateDataInView(it)
+                        }
                     }
+
                 }
             }
         })
@@ -132,22 +133,18 @@ class RocketDetailsActivity : BaseActivity() {
         detailComponent.inject(this)
     }
 
-    private fun updateDataInView(response: RocketDetailsResponse) {
-        val sortedResponse = response.data?.docs
-        sortedResponse?.sortedWith(compareBy { it.dateUtc })
-        sortedResponse?.let {
+    private fun updateDataInView(launchDetailContainer: LaunchDetailContainer) {
+        launchDetailContainer.let {
             val adapter = rvRocketLaunch.adapter as RocketLaunchDetailsAdapter
-            val map = sortedMapOf<String, Int>()
 
-            prepareChartDataFromMap(it, map)
             changeViewVisibilityOnDataLoad(
                 progressBarVisibility = View.GONE,
                 rvVisibility = View.VISIBLE
             )
             adapter.setAdapterData(
-                it,
+                launchDetailContainer.docWithYearList,
                 option?.description ?: NO_DESCRIPTION_TEXT,
-                map
+                launchDetailContainer.countMap
             )
             rvRocketLaunch.scheduleLayoutAnimation()
 
@@ -163,16 +160,4 @@ class RocketDetailsActivity : BaseActivity() {
 
     }
 
-    private fun prepareChartDataFromMap(
-        it: List<Doc>,
-        map: SortedMap<String, Int>
-    ) {
-        it.forEach { item ->
-            run {
-                val date = item.dateUtc
-                val key = date.substring(0, date.indexOf("-"))
-                map[key] = map.getOrDefault(key, 0) + 1
-            }
-        }
-    }
 }

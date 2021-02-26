@@ -1,8 +1,13 @@
 package com.spacex.rocket.spacexrocketinfo.data.model.details
 
+import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 
-class RocketDetailsResponse private constructor(val status: Status, val data: RocketDetailsData?, val error: Throwable?) {
+class RocketDetailsResponse private constructor(
+    val status: Status,
+    val data: LaunchDetailContainer?,
+    val error: Throwable?
+) {
     companion object {
         @JvmStatic
         internal fun loading(): RocketDetailsResponse {
@@ -10,7 +15,7 @@ class RocketDetailsResponse private constructor(val status: Status, val data: Ro
         }
 
         @JvmStatic
-        fun success(data: RocketDetailsData): RocketDetailsResponse {
+        fun success(data: LaunchDetailContainer): RocketDetailsResponse {
             return RocketDetailsResponse(Status.SUCCESS, data, null)
         }
 

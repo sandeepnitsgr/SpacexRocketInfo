@@ -16,7 +16,7 @@
 
         <ImageView
             android:id="@+id/launch_info_icon"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/dp_72"
             android:layout_height="0dp"
             android:contentDescription="@string/launch_image_description"
             app:layout_constraintBottom_toBottomOf="parent"

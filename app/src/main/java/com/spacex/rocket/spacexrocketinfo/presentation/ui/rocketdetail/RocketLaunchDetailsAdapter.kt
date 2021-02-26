@@ -1,7 +1,6 @@
 package com.spacex.rocket.spacexrocketinfo.presentation.ui.rocketdetail
 
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.spacex.rocket.spacexrocketinfo.R
-import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
+import com.spacex.rocket.spacexrocketinfo.data.model.DocWithYear
 import com.spacex.rocket.spacexrocketinfo.presentation.glide.GlideApp
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.FAILED_MESSAGE
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.INPUT_DATE_FORMAT
@@ -24,10 +23,11 @@ import com.spacex.rocket.spacexrocketinfo.utils.Constants.OUTPUT_DATE_FORMAT
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.SUCCESSFUL_MESSAGE
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_HEADER
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_ITEM
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_YEAR_HEADER
 import java.text.SimpleDateFormat
 import java.util.*
 
-class RocketLaunchDetailsAdapter(var response: List<Doc>) :
+class RocketLaunchDetailsAdapter(var response: List<DocWithYear>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var descriptionLaunch: String = ""
@@ -36,21 +36,41 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
         val inflater = LayoutInflater.from(parent.context)
-        return if (viewType == TYPE_HEADER) {
-            val view = inflater.inflate(R.layout.rocket_launch_details, parent, false)
-            HeaderViewHolder(view)
-        } else {
-            val view = inflater.inflate(R.layout.item_rocket_launch_detail, parent, false)
-            LaunchDetailsViewHolder(view)
+        return when (viewType) {
+            TYPE_HEADER -> {
+                val view = inflater.inflate(R.layout.rocket_launch_details, parent, false)
+                HeaderViewHolder(view)
+            }
+            TYPE_YEAR_HEADER -> {
+                val view = inflater.inflate(R.layout.year_header_layout, parent, false)
+                HeaderYearViewHolder(view)
+            }
+            else -> {
+                val view = inflater.inflate(R.layout.item_rocket_launch_detail, parent, false)
+                LaunchDetailsViewHolder(view)
+            }
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is LaunchDetailsViewHolder) {
-            setDataInLaunchDetailViewHolder(holder, position)
-        } else if (holder is HeaderViewHolder) {
-            setDataInHeaderViewHolder(holder)
+        when (holder) {
+            is LaunchDetailsViewHolder -> {
+                setDataInLaunchDetailViewHolder(holder, position)
+            }
+            is HeaderYearViewHolder -> {
+                setYearInYearViewHolder(holder, position)
+            }
+            is HeaderViewHolder -> {
+                setDataInHeaderViewHolder(holder)
+            }
         }
+    }
+
+    private fun setYearInYearViewHolder(
+        holder: HeaderYearViewHolder,
+        position: Int
+    ) {
+        holder.yearHeaderTextView.text = response[position - 1].year
     }
 
     private fun setDataInHeaderViewHolder(holder: HeaderViewHolder) {
@@ -66,7 +86,7 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
         holder: LaunchDetailsViewHolder,
         position: Int
     ) {
-        val url = response[position - 1].links.patch.small
+        val url = response[position - 1].doc!!.links.patch.small
         val glide = GlideApp.with(holder.itemView.context)
         url?.let {
             glide.load(url)
@@ -78,9 +98,9 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
         }
 
 
-        holder.missionName.text = response[position - 1].name
-        holder.launchDate.text = convertToFormattedDate(response[position - 1].dateUtc)
-        holder.launchSuccessFul.text = when (response[position - 1].success) {
+        holder.missionName.text = response[position - 1].doc!!.name
+        holder.launchDate.text = convertToFormattedDate(response[position - 1].doc!!.dateUtc)
+        holder.launchSuccessFul.text = when (response[position - 1].doc!!.success) {
             true -> SUCCESSFUL_MESSAGE
             else -> FAILED_MESSAGE
         }
@@ -138,10 +158,19 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (isPositionHeader(position)) TYPE_HEADER else TYPE_ITEM
+        return if (isPositionHeader(position))
+            TYPE_HEADER
+        else if (isPositionYearHeader(position))
+            TYPE_YEAR_HEADER
+        else
+            TYPE_ITEM
     }
 
-    fun setAdapterData(response: List<Doc>, description: String, map: SortedMap<String, Int>) {
+    private fun isPositionYearHeader(position: Int): Boolean {
+        return !response[position - 1].year.isNullOrBlank()
+    }
+
+    fun setAdapterData(response: List<DocWithYear>, description: String, map: SortedMap<String, Int>) {
         this.response = response
         descriptionLaunch = description
         pairMap = map
@@ -172,6 +201,16 @@ class RocketLaunchDetailsAdapter(var response: List<Doc>) :
             itemView.run {
                 tvRocketDescription = findViewById(R.id.rocket_description)
                 lineChart = findViewById(R.id.lineChart)
+            }
+        }
+    }
+
+    class HeaderYearViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var yearHeaderTextView: TextView
+
+        init {
+            itemView.run {
+                yearHeaderTextView = findViewById(R.id.year_header_tv)
             }
         }
     }
