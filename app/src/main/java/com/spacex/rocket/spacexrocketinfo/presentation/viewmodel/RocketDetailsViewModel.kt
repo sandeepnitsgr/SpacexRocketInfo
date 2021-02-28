@@ -8,52 +8,62 @@ import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.details.Doc
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsData
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
+import com.spacex.rocket.spacexrocketinfo.data.model.details.request.PagingOption
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.domain.RocketDetailsUseCase
-import io.reactivex.disposables.CompositeDisposable
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 class RocketDetailsViewModel @Inject constructor(
-    private val usecase: RocketDetailsUseCase,
-    private val schedulerProvider: BaseSchedulerProvider
+    private val usecase: RocketDetailsUseCase
 ) : ViewModel() {
-
-    var disposable = CompositeDisposable()
-        private set
-
+    var page = 1
     fun getRocketDetailsData(request: Request) {
-        disposable.add(usecase.getRocketDetailsData(request)
-            .subscribeOn(schedulerProvider.io())
-            .observeOn(schedulerProvider.ui())
-            .doOnSubscribe { _customDetailData.setValue(RocketDetailsResponse.loading()) }
-            .subscribe(
-                { response: RocketDetailsData ->
-                    run {
-                        val sortedList =
-                            response.docs.sortedWith(compareBy { it.dateUtc })
-
-                        val map = createCountMap(sortedList)
-                        _customDetailData.value =
-                            RocketDetailsResponse.success(
-                                LaunchDetailContainer(
-                                    createCustomResponse(
-                                        sortedList
-                                    ), sortedList, map
-                                )
-                            )
-
-                    }
-                }
-            ) { error: Throwable ->
+        if(request.option == null) page = 1
+        _customDetailData.value = RocketDetailsResponse.loading()
+        usecase.getRocketDetailsData(request).enqueue(object : Callback<RocketDetailsData> {
+            override fun onResponse(
+                call: Call<RocketDetailsData>,
+                response: Response<RocketDetailsData>
+            ) {
                 run {
-                    _customDetailData.value = RocketDetailsResponse.error(error)
-                }
-            })
+                    val sortedList =
+                        response.body()
 
+                    val map = createCountMap(sortedList?.docs)
+                    _customDetailData.value =
+                        RocketDetailsResponse.success(
+                            LaunchDetailContainer(
+                                createCustomResponse(
+                                    sortedList?.docs
+                                ),
+                                sortedList?.docs,
+                                map
+                            ), page
+                        )
+                    if(sortedList?.hasNextPage == true) {
+                        request.option = PagingOption(page + 1)
+                        getRocketDetailsData(request)
+                        page++
+                    } else {
+                        _customDetailData.value = RocketDetailsResponse.dataCompleted()
+                    }
+
+                }
+            }
+
+            override fun onFailure(call: Call<RocketDetailsData>, throwable: Throwable) {
+                _customDetailData.value = RocketDetailsResponse.error(throwable)
+            }
+
+        })
     }
 
-    private fun createCountMap(sortedList: List<Doc>?): SortedMap<String, Int> {
+    private fun createCountMap(sortedList: ArrayList<Doc>?): SortedMap<String, Int> {
         val map = sortedMapOf<String, Int>()
         sortedList?.forEach { item ->
             run {
@@ -65,8 +75,8 @@ class RocketDetailsViewModel @Inject constructor(
         return map
     }
 
-    private fun createCustomResponse(list: List<Doc>?): MutableList<DocWithYear> {
-        val customResponse = mutableListOf<DocWithYear>()
+    private fun createCustomResponse(list: ArrayList<Doc>?): ArrayList<DocWithYear> {
+        val customResponse = ArrayList<DocWithYear>()
         var prevYear = ""
         list?.let {
             for (item in list) {
@@ -93,9 +103,6 @@ class RocketDetailsViewModel @Inject constructor(
         return customResponse
     }
 
-    public override fun onCleared() {
-        disposable.clear()
-    }
     val customDetailData: LiveData<RocketDetailsResponse>
         get() = _customDetailData
 

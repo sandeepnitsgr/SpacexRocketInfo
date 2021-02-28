@@ -9,16 +9,13 @@ import com.spacex.rocket.spacexrocketinfo.data.model.Response.Companion.loading
 import com.spacex.rocket.spacexrocketinfo.data.model.Response.Companion.success
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.domain.RocketsListUseCase
-import io.reactivex.disposables.CompositeDisposable
+import retrofit2.Call
+import retrofit2.Callback
 import javax.inject.Inject
 
 class RocketsListViewModel @Inject constructor(
-    private val usecase: RocketsListUseCase,
-    private val schedulerProvider: BaseSchedulerProvider
+    private val usecase: RocketsListUseCase
 ) : ViewModel() {
-    var disposables = CompositeDisposable()
-        private set
-
 
     val rocketListData: LiveData<Response>
         get() = _rocketListData
@@ -56,26 +53,21 @@ class RocketsListViewModel @Inject constructor(
     private fun getAllRocketsList() = _rocketListData.value?.data
 
     fun getAllRocketsListFromRepo() {
-
-        disposables.add(usecase.getRocketsList()
-            .subscribeOn(schedulerProvider.io())
-            .observeOn(schedulerProvider.ui())
-            .doOnSubscribe { _rocketListData.setValue(loading()) }
-            .subscribe(
-                { rocketList: RocketListData? ->
-                    run {
-                        _rocketListData.setValue(success(rocketList!!))
-                    }
-                }
-            ) { throwable: Throwable? ->
-                run {
-                    _rocketListData.setValue(error(throwable!!))
-                }
+        _rocketListData.value = loading()
+        usecase.getRocketsList().enqueue(object : Callback<RocketListData> {
+            override fun onResponse(
+                call: Call<RocketListData>,
+                response: retrofit2.Response<RocketListData>
+            ) {
+                _rocketListData.postValue(success(response.body()!!))
             }
-        )
-    }
 
-    public override fun onCleared() {
-        disposables.clear()
+            override fun onFailure(call: Call<RocketListData>, throwable: Throwable) {
+                _rocketListData.postValue(error(throwable))
+            }
+
+        })
+
+
     }
 }

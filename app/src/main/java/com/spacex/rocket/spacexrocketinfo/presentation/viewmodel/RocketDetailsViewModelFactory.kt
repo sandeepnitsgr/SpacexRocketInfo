@@ -6,12 +6,11 @@ import com.spacex.rocket.spacexrocketinfo.domain.RocketDetailsUseCase
 import javax.inject.Inject
 
 class RocketDetailsViewModelFactory @Inject constructor(
-    private val useCase: RocketDetailsUseCase,
-    private val schedulerProvider: SchedulerProvider
-    ) : ViewModelProvider.Factory{
+    private val useCase: RocketDetailsUseCase
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RocketDetailsViewModel::class.java)) {
-            return RocketDetailsViewModel(useCase, schedulerProvider) as T
+            return RocketDetailsViewModel(useCase) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 
 data class RocketDetailsData(
     @SerializedName("docs")
-    val docs: List<Doc>,
+    val docs: ArrayList<Doc>,
     @SerializedName("hasNextPage")
     val hasNextPage: Boolean,
     @SerializedName("hasPrevPage")

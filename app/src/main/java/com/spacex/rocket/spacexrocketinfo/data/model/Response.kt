@@ -8,7 +8,7 @@ class Response private constructor(val status: Status, val data: RocketListData?
         }
 
         @JvmStatic
-        fun success(data: RocketListData): Response {
+        fun success(data: RocketListData?): Response {
             return Response(Status.SUCCESS, data, null)
         }
 

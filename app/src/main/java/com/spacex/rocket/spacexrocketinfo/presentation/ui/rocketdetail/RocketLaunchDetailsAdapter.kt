@@ -26,8 +26,9 @@ import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_ITEM
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_YEAR_HEADER
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
-class RocketLaunchDetailsAdapter(var response: List<DocWithYear>) :
+class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var descriptionLaunch: String = ""
@@ -170,11 +171,23 @@ class RocketLaunchDetailsAdapter(var response: List<DocWithYear>) :
         return !response[position - 1].year.isNullOrBlank()
     }
 
-    fun setAdapterData(response: List<DocWithYear>, description: String, map: SortedMap<String, Int>) {
-        this.response = response
-        descriptionLaunch = description
-        pairMap = map
-        notifyDataSetChanged()
+    fun setAdapterData(
+        response: ArrayList<DocWithYear>,
+        description: String,
+        map: SortedMap<String, Int>,
+        page: Int
+    ) {
+        if(page == 1) {
+            this.response = response
+            descriptionLaunch = description
+            pairMap = map
+            notifyDataSetChanged()
+        } else {
+            val size = this.response.size
+            this.response.addAll(response)
+            pairMap.putAll(map)
+            notifyItemRangeInserted(size, response.size - 1)
+        }
     }
 
     class LaunchDetailsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

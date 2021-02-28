@@ -43,8 +43,8 @@ class RocketDetailsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.details_activity)
-        initUIComponents()
         fetchPassedData()
+        initUIComponents()
         setUpViewModelIfRequired()
     }
 
@@ -87,6 +87,7 @@ class RocketDetailsActivity : BaseActivity() {
 
     private fun fetchData(id: String) {
         val request = Request(RequestQuery(id))
+        request.option = null
         viewModel.getRocketDetailsData(request)
     }
 
@@ -113,12 +114,19 @@ class RocketDetailsActivity : BaseActivity() {
                         rvVisibility = View.GONE
                     )
                 }
-                else -> {
-                    response?.let { res ->
+                Status.SUCCESS -> {
+                    response.let { res ->
                         res.data?.let {
-                            updateDataInView(it)
+                            updateDataInView(it, res.page)
                         }
                     }
+
+                }
+                else -> {
+                    changeViewVisibilityOnDataLoad(
+                        progressBarVisibility = View.GONE,
+                        rvVisibility = View.VISIBLE
+                    )
 
                 }
             }
@@ -133,18 +141,15 @@ class RocketDetailsActivity : BaseActivity() {
         detailComponent.inject(this)
     }
 
-    private fun updateDataInView(launchDetailContainer: LaunchDetailContainer) {
+    private fun updateDataInView(launchDetailContainer: LaunchDetailContainer, page: Int) {
         launchDetailContainer.let {
             val adapter = rvRocketLaunch.adapter as RocketLaunchDetailsAdapter
 
-            changeViewVisibilityOnDataLoad(
-                progressBarVisibility = View.GONE,
-                rvVisibility = View.VISIBLE
-            )
             adapter.setAdapterData(
                 launchDetailContainer.docWithYearList,
                 option?.description ?: NO_DESCRIPTION_TEXT,
-                launchDetailContainer.countMap
+                launchDetailContainer.countMap,
+                page
             )
             rvRocketLaunch.scheduleLayoutAnimation()
 
