@@ -9,14 +9,17 @@ import com.spacex.rocket.spacexrocketinfo.data.model.Response.Companion.loading
 import com.spacex.rocket.spacexrocketinfo.data.model.Response.Companion.success
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.domain.RocketsListUseCase
-import retrofit2.Call
-import retrofit2.Callback
+import com.spacex.rocket.spacexrocketinfo.utils.BaseSchedulerProvider
+import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
 class RocketsListViewModel @Inject constructor(
-    private val usecase: RocketsListUseCase
+    private val usecase: RocketsListUseCase,
+    private val schedulerProvider: BaseSchedulerProvider
 ) : ViewModel() {
 
+    var disposables = CompositeDisposable()
+        private set
     val rocketListData: LiveData<Response>
         get() = _rocketListData
 
@@ -54,20 +57,25 @@ class RocketsListViewModel @Inject constructor(
 
     fun getAllRocketsListFromRepo() {
         _rocketListData.value = loading()
-        usecase.getRocketsList().enqueue(object : Callback<RocketListData> {
-            override fun onResponse(
-                call: Call<RocketListData>,
-                response: retrofit2.Response<RocketListData>
-            ) {
-                _rocketListData.postValue(success(response.body()!!))
+        disposables.add(usecase.getRocketsList()
+            .subscribeOn(schedulerProvider.io())
+            .observeOn(schedulerProvider.ui())
+            .doOnSubscribe { _rocketListData.setValue(loading()) }
+            .subscribe(
+                { rocketList: RocketListData? ->
+                    run {
+                        _rocketListData.setValue(success(rocketList!!))
+                    }
+                }
+            ) { throwable: Throwable? ->
+                run {
+                    _rocketListData.setValue(error(throwable!!))
+                }
             }
+        )
+    }
 
-            override fun onFailure(call: Call<RocketListData>, throwable: Throwable) {
-                _rocketListData.postValue(error(throwable))
-            }
-
-        })
-
-
+    public override fun onCleared() {
+        disposables.clear()
     }
 }

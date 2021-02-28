@@ -4,6 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketListData
 import com.spacex.rocket.spacexrocketinfo.domain.RocketsListUseCase
+import com.spacex.rocket.spacexrocketinfo.utils.BaseSchedulerProvider
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

@@ -8,6 +8,10 @@ object Constants {
     const val TYPE_HEADER = 0
     const val TYPE_YEAR_HEADER = 1
     const val TYPE_ITEM = 2
+    const val TYPE_LOADING = 3
+
+
+
     const val NUM_OF_LAUNCHES = "Number of launches per year"
     const val INPUT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     const val OUTPUT_DATE_FORMAT = "dd-MM-yyyy HH:mm:ss"

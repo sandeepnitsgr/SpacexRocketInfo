@@ -11,56 +11,78 @@ import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsRespon
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.PagingOption
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.domain.RocketDetailsUseCase
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.spacex.rocket.spacexrocketinfo.utils.BaseSchedulerProvider
+import io.reactivex.disposables.CompositeDisposable
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 class RocketDetailsViewModel @Inject constructor(
-    private val usecase: RocketDetailsUseCase
+    private val usecase: RocketDetailsUseCase,
+    private val schedulerProvider: BaseSchedulerProvider
 ) : ViewModel() {
+
+
+    val shouldShowProgressBarLiveData: LiveData<Boolean>
+    get() = _shouldShowProgressBarLiveData
+
+    private val _shouldShowProgressBarLiveData = MutableLiveData<Boolean>()
+    val customDetailData: LiveData<RocketDetailsResponse>
+        get() = _customDetailData
+
+    private val _customDetailData =
+        MutableLiveData<RocketDetailsResponse>()
+
+
     var page = 1
+    var disposable = CompositeDisposable()
+        private set
+
     fun getRocketDetailsData(request: Request) {
-        if(request.option == null) page = 1
-        _customDetailData.value = RocketDetailsResponse.loading()
-        usecase.getRocketDetailsData(request).enqueue(object : Callback<RocketDetailsData> {
-            override fun onResponse(
-                call: Call<RocketDetailsData>,
-                response: Response<RocketDetailsData>
-            ) {
-                run {
-                    val sortedList =
-                        response.body()
+        if (request.option == null) page = 1
 
-                    val map = createCountMap(sortedList?.docs)
-                    _customDetailData.value =
-                        RocketDetailsResponse.success(
-                            LaunchDetailContainer(
-                                createCustomResponse(
-                                    sortedList?.docs
-                                ),
-                                sortedList?.docs,
-                                map
-                            ), page
-                        )
-                    if(sortedList?.hasNextPage == true) {
-                        request.option = PagingOption(page + 1)
-                        getRocketDetailsData(request)
-                        page++
-                    } else {
-                        _customDetailData.value = RocketDetailsResponse.dataCompleted()
+        disposable.add(usecase.getRocketDetailsData(request)
+            .subscribeOn(schedulerProvider.io())
+            .observeOn(schedulerProvider.ui())
+            .doOnSubscribe { _shouldShowProgressBarLiveData.value = true }
+            .subscribe(
+                { response: RocketDetailsData ->
+                    run {
+                        processResponse(request, response)
                     }
-
+                }) { error: Throwable ->
+                run {
+                    _customDetailData.value = RocketDetailsResponse.error(error)
+                    _shouldShowProgressBarLiveData.value = false
                 }
             }
+        )
+    }
 
-            override fun onFailure(call: Call<RocketDetailsData>, throwable: Throwable) {
-                _customDetailData.value = RocketDetailsResponse.error(throwable)
-            }
+    private fun processResponse(
+        request: Request,
+        body: RocketDetailsData?
+    ) {
 
-        })
+        val map = createCountMap(body?.docs)
+        _customDetailData.value =
+            RocketDetailsResponse.success(
+                LaunchDetailContainer(
+                    createCustomResponse(
+                        body?.docs
+                    ),
+                    body?.docs,
+                    map
+                ), page
+            )
+        if(body?.hasNextPage == true) {
+            request.option = PagingOption(page + 1)
+            getRocketDetailsData(request)
+            page++
+        } else {
+            _shouldShowProgressBarLiveData.value = false
+        }
+
     }
 
     private fun createCountMap(sortedList: ArrayList<Doc>?): SortedMap<String, Int> {
@@ -103,9 +125,8 @@ class RocketDetailsViewModel @Inject constructor(
         return customResponse
     }
 
-    val customDetailData: LiveData<RocketDetailsResponse>
-        get() = _customDetailData
-
-    private val _customDetailData = MutableLiveData<RocketDetailsResponse>()
+    public override fun onCleared() {
+        disposable.clear()
+    }
 
 }

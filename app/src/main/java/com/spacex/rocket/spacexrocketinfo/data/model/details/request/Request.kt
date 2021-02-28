@@ -15,7 +15,7 @@ data class Request(
 @Parcelize
 data class PagingOption(
     @SerializedName("page")
-    val page: Int = 1
+    var page: Int = 1
 ) : Parcelable
 
 @Parcelize

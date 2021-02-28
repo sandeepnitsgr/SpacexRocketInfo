@@ -13,6 +13,7 @@ import com.spacex.rocket.spacexrocketinfo.data.model.LaunchDetailContainer
 import com.spacex.rocket.spacexrocketinfo.data.model.RocketInfo
 import com.spacex.rocket.spacexrocketinfo.data.model.Status
 import com.spacex.rocket.spacexrocketinfo.data.model.details.RocketDetailsResponse
+import com.spacex.rocket.spacexrocketinfo.data.model.details.request.PagingOption
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.Request
 import com.spacex.rocket.spacexrocketinfo.data.model.details.request.RequestQuery
 import com.spacex.rocket.spacexrocketinfo.data.remote.retrofit.ApiService
@@ -40,6 +41,7 @@ class RocketDetailsActivity : BaseActivity() {
     lateinit var viewModel: RocketDetailsViewModel
     var option: RocketInfo? = null
 
+    lateinit var request: Request
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.details_activity)
@@ -99,21 +101,24 @@ class RocketDetailsActivity : BaseActivity() {
     }
 
     private fun addObserver() {
-        viewModel.customDetailData.observe(this, { response: RocketDetailsResponse? ->
-            when (response?.status) {
-                Status.LOADING -> {
-                    changeViewVisibilityOnDataLoad(
-                        progressBarVisibility = View.VISIBLE,
-                        rvVisibility = View.GONE
-                    )
-                }
-                Status.ERROR -> {
-                    errorTextView.visibility = View.VISIBLE
+        viewModel.shouldShowProgressBarLiveData.observe(this, { shouldShow: Boolean ->
+            when (shouldShow) {
+                true -> changeViewVisibilityOnDataLoad(
+                    progressBarVisibility = View.VISIBLE,
+                    rvVisibility = View.GONE
+                )
+                false -> {
                     changeViewVisibilityOnDataLoad(
                         progressBarVisibility = View.GONE,
-                        rvVisibility = View.GONE
+                        rvVisibility = View.VISIBLE
                     )
                 }
+            }
+        }
+
+        )
+        viewModel.customDetailData.observe(this, { response: RocketDetailsResponse? ->
+            when (response?.status) {
                 Status.SUCCESS -> {
                     response.let { res ->
                         res.data?.let {
@@ -123,11 +128,7 @@ class RocketDetailsActivity : BaseActivity() {
 
                 }
                 else -> {
-                    changeViewVisibilityOnDataLoad(
-                        progressBarVisibility = View.GONE,
-                        rvVisibility = View.VISIBLE
-                    )
-
+                    errorTextView.visibility = View.VISIBLE
                 }
             }
         })

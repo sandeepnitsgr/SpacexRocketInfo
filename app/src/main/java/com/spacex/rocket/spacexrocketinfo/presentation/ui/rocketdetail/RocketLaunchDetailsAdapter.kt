@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -23,10 +24,10 @@ import com.spacex.rocket.spacexrocketinfo.utils.Constants.OUTPUT_DATE_FORMAT
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.SUCCESSFUL_MESSAGE
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_HEADER
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_ITEM
+import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_LOADING
 import com.spacex.rocket.spacexrocketinfo.utils.Constants.TYPE_YEAR_HEADER
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -65,6 +66,12 @@ class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
                 setDataInHeaderViewHolder(holder)
             }
         }
+    }
+
+    private fun setLoaderViewHolder(
+        holder: LoadingViewHolder
+    ) {
+        holder.progressBar.visibility = View.VISIBLE
     }
 
     private fun setYearInYearViewHolder(
@@ -159,12 +166,16 @@ class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (isPositionHeader(position))
-            TYPE_HEADER
-        else if (isPositionYearHeader(position))
-            TYPE_YEAR_HEADER
-        else
-            TYPE_ITEM
+        return when {
+            isPositionHeader(position) -> TYPE_HEADER
+//            isPositionLoader(position) -> TYPE_LOADING
+            isPositionYearHeader(position) -> TYPE_YEAR_HEADER
+            else -> TYPE_ITEM
+        }
+    }
+
+    private fun isPositionLoader(position: Int): Boolean {
+        return position == response.size + 1
     }
 
     private fun isPositionYearHeader(position: Int): Boolean {
@@ -172,19 +183,19 @@ class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
     }
 
     fun setAdapterData(
-        response: ArrayList<DocWithYear>,
+        resp: ArrayList<DocWithYear>,
         description: String,
         map: SortedMap<String, Int>,
         page: Int
     ) {
-        if(page == 1) {
-            this.response = response
+        if (page == 1) {
+            response = resp
             descriptionLaunch = description
             pairMap = map
             notifyDataSetChanged()
         } else {
-            val size = this.response.size
-            this.response.addAll(response)
+            val size = response.size
+            response.addAll(resp)
             pairMap.putAll(map)
             notifyItemRangeInserted(size, response.size - 1)
         }
@@ -224,6 +235,16 @@ class RocketLaunchDetailsAdapter(var response: ArrayList<DocWithYear>) :
         init {
             itemView.run {
                 yearHeaderTextView = findViewById(R.id.year_header_tv)
+            }
+        }
+    }
+
+    class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var progressBar: ProgressBar
+
+        init {
+            itemView.run {
+                progressBar = findViewById(R.id.rv_last_item_progress)
             }
         }
     }

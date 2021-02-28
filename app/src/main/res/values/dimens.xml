@@ -5,4 +5,6 @@
     <dimen name="font_16">16sp</dimen>
     <dimen name="dp_24">24dp</dimen>
     <dimen name="dp_72">72dp</dimen>
+    <dimen name="dp_1">1dp</dimen>
+    <dimen name="dp_4">4dp</dimen>
 </resources>
